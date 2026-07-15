@@ -1,5 +1,7 @@
 import { formatQty, type Unit } from './stock'
 
+export const CURRENCY = 'AED'
+
 export function formatShortDate(iso: string, now: Date = new Date()): string {
   const date = new Date(iso)
   const sameYear = date.getUTCFullYear() === now.getUTCFullYear()
@@ -22,6 +24,6 @@ export function formatLastPurchase(
 ): string {
   const qty = formatQty(purchase.qty, unit)
   const date = formatShortDate(purchase.purchased_at, now)
-  const price = purchase.price != null ? ` @ ₹${purchase.price}` : ''
+  const price = purchase.price != null ? ` @ ${CURRENCY} ${purchase.price}` : ''
   return `${qty}${price} · ${date}`
 }

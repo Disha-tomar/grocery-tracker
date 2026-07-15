@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { CURRENCY } from '../lib/format'
 import { defaultRestockQty } from '../lib/stock'
 import type { Item, Purchase } from '../lib/types'
 import { Sheet } from './Sheet'
@@ -45,7 +46,7 @@ export function QuickAddSheet({
           />
         </label>
         <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-bold text-ink-soft">Price ₹ (optional)</span>
+          <span className="text-sm font-bold text-ink-soft">Price in {CURRENCY} (optional)</span>
           <input
             type="number"
             inputMode="decimal"

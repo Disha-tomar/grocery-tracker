@@ -19,7 +19,7 @@ describe('formatLastPurchase', () => {
   test('shows qty, price and date', () => {
     expect(
       formatLastPurchase({ qty: 500, price: 210, purchased_at: '2026-07-02T10:00:00Z' }, 'g', now),
-    ).toBe('500 g @ ₹210 · 2 Jul')
+    ).toBe('500 g @ AED 210 · 2 Jul')
   })
 
   test('omits price when it was not recorded', () => {
