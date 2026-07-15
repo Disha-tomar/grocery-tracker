@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Mascot } from './components/Mascot'
 import { TabBar } from './components/TabBar'
 import { useHousehold, useProfile, useSession } from './hooks/useAuth'
@@ -81,6 +81,7 @@ export default function App() {
           }
         />
         <Route path="/settings" element={<SettingsScreen household={household} profile={profile} />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <TabBar lowCount={lowCount} />
     </BrowserRouter>
