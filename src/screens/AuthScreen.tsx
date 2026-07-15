@@ -20,6 +20,16 @@ export function AuthScreen() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
+  const signInAsGuest = async () => {
+    setBusy(true)
+    setError('')
+    const { error } = await supabase.auth.signInAnonymously()
+    if (error) {
+      setBusy(false)
+      setError(error.message)
+    }
+  }
+
   const signInWithGoogle = async () => {
     setBusy(true)
     setError('')
@@ -84,6 +94,16 @@ export function AuthScreen() {
           >
             Use an email code instead
           </button>
+          {import.meta.env.DEV && (
+            <button
+              type="button"
+              onClick={signInAsGuest}
+              disabled={busy}
+              className="rounded-2xl border-2 border-dashed border-lavender bg-lavender-soft py-3 font-bold transition-transform active:scale-95 disabled:opacity-40"
+            >
+              🧪 Skip sign-in (dev guest)
+            </button>
+          )}
         </div>
       )}
 
