@@ -12,7 +12,7 @@ Your home's cute little pantry brain — a shared-household PWA that tracks groc
 
 1. Create a project at [supabase.com](https://supabase.com) (any name, e.g. `pantry-pal`).
 2. In the dashboard, open **SQL Editor** → paste and run the whole of [`supabase/migrations/001_init.sql`](supabase/migrations/001_init.sql).
-3. In **Authentication → Providers**, make sure **Email** is enabled (the app signs in with 6-digit email codes).
+3. Sign-in uses **Google** (recommended): in Google Cloud Console create an OAuth client (Web application) with redirect URI `https://YOUR-PROJECT.supabase.co/auth/v1/callback`, then paste the client ID + secret into Supabase **Authentication → Sign In / Providers → Google**. (Fallback: 6-digit email codes work too, but editing their email template requires custom SMTP.)
 4. Copy **Project Settings → API → Project URL** and **anon public key**.
 
 ### 2. Local env
