@@ -1,0 +1,60 @@
+@import '@fontsource/baloo-2/600.css';
+@import '@fontsource/baloo-2/700.css';
+@import '@fontsource/nunito/400.css';
+@import '@fontsource/nunito/600.css';
+@import '@fontsource/nunito/700.css';
+@import '@fontsource/nunito/800.css';
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Baloo 2', system-ui, sans-serif;
+  --font-sans: 'Nunito', system-ui, sans-serif;
+
+  /* Pantry Pal pastel palette */
+  --color-cream: #fff8f2;
+  --color-ink: #5c4a42;
+  --color-ink-soft: #a08d84;
+
+  --color-peach: #ffb59e;
+  --color-peach-soft: #ffe0d4;
+  --color-mint: #7fd8b5;
+  --color-mint-soft: #dcf5ea;
+  --color-butter: #ffd977;
+  --color-butter-soft: #fff1cc;
+  --color-lavender: #b99ae8;
+  --color-lavender-soft: #ece2fa;
+  --color-berry: #e8638c;
+  --color-berry-soft: #fcdde8;
+
+  --radius-blob: 1.75rem;
+
+  --shadow-puff: 0 4px 16px rgb(92 74 66 / 0.08);
+  --shadow-puff-lg: 0 8px 28px rgb(92 74 66 / 0.12);
+
+  --animate-boing: boing 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  @keyframes boing {
+    0% {
+      transform: scale(0.9);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+html {
+  background: var(--color-cream);
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/* iOS momentum + no pull-flash inside the standalone app */
+#root {
+  min-height: 100dvh;
+}
