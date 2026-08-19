@@ -7,6 +7,7 @@ import {
   isLow,
   isOut,
   levelQty,
+  onShoppingList,
 } from './stock'
 
 const purchase = (qty: number, daysAgo = 0) => ({
@@ -120,5 +121,29 @@ describe('formatQty', () => {
 
   test('rounds awkward fractions to at most one decimal', () => {
     expect(formatQty(333.33, 'g')).toBe('333.3 g')
+  })
+})
+
+describe('onShoppingList', () => {
+  const item = (current_qty: number, low_threshold: number, needed = false) => ({
+    current_qty,
+    low_threshold,
+    needed,
+  })
+
+  test('includes anything a family member flagged, even when the jar is full', () => {
+    expect(onShoppingList(item(500, 100, true))).toBe(true)
+  })
+
+  test('still includes items that ran low on their own', () => {
+    expect(onShoppingList(item(50, 100))).toBe(true)
+  })
+
+  test('includes flagged items that are also empty', () => {
+    expect(onShoppingList(item(0, 100, true))).toBe(true)
+  })
+
+  test('leaves well-stocked, unflagged items off the list', () => {
+    expect(onShoppingList(item(500, 100))).toBe(false)
   })
 })

@@ -3,7 +3,7 @@ import { Mascot } from './components/Mascot'
 import { TabBar } from './components/TabBar'
 import { useHousehold, useProfile, useSession } from './hooks/useAuth'
 import { useItems, usePurchasesByItem, useRealtimeSync } from './hooks/useData'
-import { isLow } from './lib/stock'
+import { onShoppingList } from './lib/stock'
 import { isSupabaseConfigured } from './lib/supabase'
 import { AddScreen } from './screens/AddScreen'
 import { AuthScreen } from './screens/AuthScreen'
@@ -43,7 +43,7 @@ export default function App() {
   if (!household || !profile) return <Splash />
 
   const allItems = items ?? []
-  const lowCount = allItems.filter(isLow).length
+  const lowCount = allItems.filter(onShoppingList).length
 
   return (
     <BrowserRouter>

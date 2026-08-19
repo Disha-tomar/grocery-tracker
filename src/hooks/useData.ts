@@ -92,6 +92,14 @@ export function useItemMutations(householdId: string | null | undefined) {
     onSuccess: invalidate,
   })
 
+  const setNeeded = useMutation({
+    mutationFn: async ({ itemId, needed }: { itemId: string; needed: boolean }) => {
+      const { error } = await supabase.from('items').update({ needed }).eq('id', itemId)
+      if (error) throw error
+    },
+    onSuccess: invalidate,
+  })
+
   const addPurchase = useMutation({
     mutationFn: async (purchase: {
       item_id: string
@@ -118,7 +126,7 @@ export function useItemMutations(householdId: string | null | undefined) {
     onSuccess: invalidate,
   })
 
-  return { upsertItem, deleteItem, setItemQty, addPurchase, deletePurchase }
+  return { upsertItem, deleteItem, setItemQty, setNeeded, addPurchase, deletePurchase }
 }
 
 /** Live family sync: any change to household data refreshes local queries. */

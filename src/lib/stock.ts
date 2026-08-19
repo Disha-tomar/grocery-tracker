@@ -30,6 +30,14 @@ export function isOut(item: Pick<StockLike, 'current_qty'>): boolean {
   return item.current_qty <= 0
 }
 
+/**
+ * The shopping list is "what ran low" plus "what someone asked for" — a
+ * request stands on its own, even when the jar still has plenty left.
+ */
+export function onShoppingList(item: StockLike & { needed: boolean }): boolean {
+  return item.needed || isLow(item)
+}
+
 /** What "a full stock" of this item looks like, inferred from recent purchase sizes. */
 export function fullAmount(purchases: PurchaseLike[], currentQty: number): number {
   const recent = [...purchases]

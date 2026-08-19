@@ -24,6 +24,8 @@ export interface Item {
   current_qty: number
   low_threshold: number
   is_usual: boolean
+  /** Someone asked for this, regardless of how much is left. */
+  needed: boolean
   created_at: string
 }
 
