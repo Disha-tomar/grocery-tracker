@@ -35,7 +35,11 @@ export function AuthScreen() {
     setError('')
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo: window.location.origin,
+        // Always offer the account chooser — family members share devices.
+        queryParams: { prompt: 'select_account' },
+      },
     })
     // On success the browser navigates away; only errors land here.
     if (error) {

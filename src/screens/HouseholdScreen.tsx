@@ -1,10 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Mascot } from '../components/Mascot'
+import { useInvalidateOnSignOut, useSession } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 
 export function HouseholdScreen() {
   const queryClient = useQueryClient()
+  const { session } = useSession()
+  const signOut = useInvalidateOnSignOut()
   const [mode, setMode] = useState<'create' | 'join'>('create')
   const [name, setName] = useState('')
   const [householdName, setHouseholdName] = useState('')
@@ -93,6 +96,18 @@ export function HouseholdScreen() {
         </button>
         {error && <p className="text-center text-sm font-bold text-berry">{error}</p>}
       </div>
+
+      <p className="text-center text-sm text-ink-soft">
+        {session?.user.email ? (
+          <>
+            Signed in as <strong className="font-bold">{session.user.email}</strong>
+            <br />
+          </>
+        ) : null}
+        <button type="button" onClick={signOut} className="py-2 font-bold text-berry underline">
+          Not you? Sign out
+        </button>
+      </p>
     </div>
   )
 }
