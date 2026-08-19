@@ -39,4 +39,14 @@ export interface Purchase {
   added_by: string | null
 }
 
+export interface PushSubscriptionRow {
+  id: string
+  user_id: string
+  endpoint: string
+  p256dh: string
+  auth: string
+  device_label: string
+  created_at: string
+}
+
 export type { Level, Unit }
