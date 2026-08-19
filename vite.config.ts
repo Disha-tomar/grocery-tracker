@@ -9,7 +9,17 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'autoUpdate',
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        // Keep the worker readable: minifying renames precacheAndRoute /
+        // self.__WB_MANIFEST away, which defeats source-level verification
+        // that precaching survived the switch to injectManifest.
+        minify: false,
+      },
       manifest: {
         name: 'Pantry Pal',
         short_name: 'Pantry Pal',
@@ -29,10 +39,6 @@ export default defineConfig({
             purpose: 'maskable',
           },
         ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-        navigateFallback: 'index.html',
       },
     }),
   ],
