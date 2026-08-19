@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
+import { disablePush, enablePush, getPushState, type PushState } from '../lib/push'
 import { useHouseholdMembers, useInvalidateOnSignOut } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import type { Household, Profile } from '../lib/types'
-import { disablePush, enablePush, getPushState, type PushState } from '../lib/push'
 
 const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent)
 const isStandalone =
@@ -38,7 +38,6 @@ export function SettingsScreen({
       setPushBusy(false)
     }
   }
-
   const [name, setName] = useState(profile.display_name)
   const [saved, setSaved] = useState(false)
 
@@ -78,7 +77,7 @@ export function SettingsScreen({
       </section>
 
       <section className="mb-5 rounded-blob bg-white p-4 shadow-puff">
-        <h2 className="mb-2 font-display font-bold">Who’s home ð¨âð©âð§</h2>
+        <h2 className="mb-2 font-display font-bold">Who’s home 👨‍👩‍👧</h2>
         <div className="flex flex-wrap gap-2">
           {(members ?? []).map((m) => (
             <span key={m.user_id} className="rounded-full bg-lavender-soft px-3.5 py-1.5 font-bold">
@@ -110,7 +109,7 @@ export function SettingsScreen({
         <section className="mb-5 rounded-blob bg-butter-soft p-4 shadow-puff">
           <h2 className="mb-1 font-display font-bold">Install on your iPhone 📱</h2>
           <p className="text-sm">
-            Tap the <strong>Share</strong> button in Safari, then <strong>“Add to Home Screen”</strong> â
+            Tap the <strong>Share</strong> button in Safari, then <strong>“Add to Home Screen”</strong> —
             Pantry Pal will feel just like a real app!
           </p>
         </section>
@@ -121,12 +120,12 @@ export function SettingsScreen({
         {pushState === 'unsupported' ? (
           <p className="text-sm text-ink-soft">
             {isIos && !isStandalone
-              ? "Add Pantry Pal to your Home Screen first — iPhones only allow notifications for installed apps."
-              : "This browser can't do notifications. Try Chrome on Android, or install the app."}
+              ? 'Add Pantry Pal to your Home Screen first — iPhones only allow notifications for installed apps.'
+              : 'This browser can’t do notifications. Try Chrome on Android, or install the app.'}
           </p>
         ) : pushState === 'denied' ? (
           <p className="text-sm text-ink-soft">
-            Notifications are blocked for Pantry Pal. Turn them back on in your browser's site
+            Notifications are blocked for Pantry Pal. Turn them back on in your browser’s site
             settings, then reopen this page.
           </p>
         ) : (
