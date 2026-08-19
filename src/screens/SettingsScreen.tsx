@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useHouseholdMembers, useInvalidateOnSignOut } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import type { Household, Profile } from '../lib/types'
+import { disablePush, enablePush, getPushState, type PushState } from '../lib/push'
 
 const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent)
 const isStandalone =
@@ -17,6 +18,27 @@ export function SettingsScreen({
 }) {
   const { data: members } = useHouseholdMembers(household.id)
   const signOut = useInvalidateOnSignOut()
+  const [pushState, setPushState] = useState<PushState>('unsupported')
+  const [pushBusy, setPushBusy] = useState(false)
+
+  useEffect(() => {
+    void getPushState().then(setPushState)
+  }, [])
+
+  const togglePush = async () => {
+    setPushBusy(true)
+    try {
+      if (pushState === 'enabled') {
+        await disablePush()
+        setPushState('disabled')
+      } else {
+        setPushState(await enablePush())
+      }
+    } finally {
+      setPushBusy(false)
+    }
+  }
+
   const [name, setName] = useState(profile.display_name)
   const [saved, setSaved] = useState(false)
 
@@ -56,7 +78,7 @@ export function SettingsScreen({
       </section>
 
       <section className="mb-5 rounded-blob bg-white p-4 shadow-puff">
-        <h2 className="mb-2 font-display font-bold">Who’s home 👨‍👩‍👧</h2>
+        <h2 className="mb-2 font-display font-bold">Who's home 👨‍👩‍👧</h2>
         <div className="flex flex-wrap gap-2">
           {(members ?? []).map((m) => (
             <span key={m.user_id} className="rounded-full bg-lavender-soft px-3.5 py-1.5 font-bold">
@@ -88,11 +110,47 @@ export function SettingsScreen({
         <section className="mb-5 rounded-blob bg-butter-soft p-4 shadow-puff">
           <h2 className="mb-1 font-display font-bold">Install on your iPhone 📱</h2>
           <p className="text-sm">
-            Tap the <strong>Share</strong> button in Safari, then <strong>“Add to Home Screen”</strong> —
+            Tap the <strong>Share</strong> button in Safari, then <strong>"Add to Home Screen"</strong> —
             Pantry Pal will feel just like a real app!
           </p>
         </section>
       )}
+
+      <section className="mb-5 rounded-blob bg-white p-4 shadow-puff">
+        <h2 className="mb-1 font-display font-bold">Nudges 🙋</h2>
+        {pushState === 'unsupported' ? (
+          <p className="text-sm text-ink-soft">
+            {isIos && !isStandalone
+              ? "Add Pantry Pal to your Home Screen first — iPhones only allow notifications for installed apps."
+              : "This browser can't do notifications. Try Chrome on Android, or install the app."}
+          </p>
+        ) : pushState === 'denied' ? (
+          <p className="text-sm text-ink-soft">
+            Notifications are blocked for Pantry Pal. Turn them back on in your browser's site
+            settings, then reopen this page.
+          </p>
+        ) : (
+          <>
+            <p className="mb-3 text-sm text-ink-soft">
+              Get a nudge when someone in your home needs something.
+            </p>
+            <button
+              type="button"
+              onClick={togglePush}
+              disabled={pushBusy}
+              className={`w-full rounded-2xl py-3 font-display font-bold shadow-puff transition-transform active:scale-95 disabled:opacity-40 ${
+                pushState === 'enabled' ? 'bg-mint text-white' : 'bg-butter-soft'
+              }`}
+            >
+              {pushBusy
+                ? 'One sec…'
+                : pushState === 'enabled'
+                  ? 'Nudges are on ✓'
+                  : 'Turn on nudges 🔔'}
+            </button>
+          </>
+        )}
+      </section>
 
       <button type="button" onClick={signOut} className="w-full py-2 text-sm font-bold text-berry">
         Sign out
