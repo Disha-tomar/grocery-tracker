@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 import { clientsClaim } from 'workbox-core'
-import { createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
+import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import type { NeedNotification } from '../supabase/functions/_shared/notification'
 
@@ -9,6 +9,11 @@ declare const self: ServiceWorkerGlobalScope
 // Replaced at build time with the list of files to precache. Keeps the
 // offline behaviour that generateSW used to provide for us.
 precacheAndRoute(self.__WB_MANIFEST)
+
+// generateSW enabled this by default (cleanupOutdatedCaches: true), right
+// after precacheAndRoute; keep it so stale precache entries from earlier
+// workbox revisions get removed on update.
+cleanupOutdatedCaches()
 
 // Single-page app: every navigation falls back to index.html, replacing the
 // old `navigateFallback` option.

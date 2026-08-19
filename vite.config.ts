@@ -15,10 +15,6 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-        // Keep the worker readable: minifying renames precacheAndRoute /
-        // self.__WB_MANIFEST away, which defeats source-level verification
-        // that precaching survived the switch to injectManifest.
-        minify: false,
       },
       manifest: {
         name: 'Pantry Pal',
