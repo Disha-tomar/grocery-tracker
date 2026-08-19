@@ -44,7 +44,16 @@ export function LowScreen({
         🙋 Need something?
       </button>
 
-      {listItems.length === 0 ? (
+      {items.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 rounded-blob bg-white p-8 text-center shadow-puff">
+          <Mascot size={80} />
+          <p className="font-display text-lg font-bold">Nothing in your pantry yet 🧺</p>
+          <p className="text-sm text-ink-soft">
+            Add what you already have from the <strong>➕ Add</strong> tab — or tap{' '}
+            <strong>🙋 Need something?</strong> above to start a shopping list.
+          </p>
+        </div>
+      ) : listItems.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-blob bg-mint-soft p-8 text-center shadow-puff">
           <Mascot size={80} />
           <p className="font-display text-lg font-bold">Fully stocked! 🎉</p>
