@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { describeDevice, isUniqueViolation, urlBase64ToUint8Array } from './push'
+import { describeDevice, isUniqueViolation, urlBase64ToUint8Array, withTimeout } from './push'
 
 describe('urlBase64ToUint8Array', () => {
   test('decodes a URL-safe base64 VAPID key to bytes', () => {
@@ -58,5 +58,30 @@ describe('isUniqueViolation', () => {
     expect(isUniqueViolation(null)).toBe(false)
     expect(isUniqueViolation(undefined)).toBe(false)
     expect(isUniqueViolation('some string error')).toBe(false)
+  })
+})
+
+describe('withTimeout', () => {
+  test('resolves with the underlying value when it settles before the timeout', async () => {
+    await expect(withTimeout(Promise.resolve('done'), 50)).resolves.toBe('done')
+  })
+
+  test('rejects with the underlying reason when it rejects before the timeout', async () => {
+    await expect(withTimeout(Promise.reject(new Error('boom')), 50)).rejects.toThrow('boom')
+  })
+
+  test('rejects with a timeout error when the promise never settles in time', async () => {
+    const neverSettles = new Promise(() => {})
+    await expect(withTimeout(neverSettles, 10)).rejects.toThrow('Timed out after 10ms')
+  })
+
+  test('does not leave a pending timer that fires after the promise already won the race', async () => {
+    // If the timer weren't cleared, this would still resolve fine here, but a
+    // stray timer could otherwise fire later and (in a real caller) trigger
+    // an unhandled-rejection warning after the fact. Waiting past the
+    // timeout window confirms nothing unexpected happens once the winning
+    // branch has already settled.
+    await expect(withTimeout(Promise.resolve('fast'), 10)).resolves.toBe('fast')
+    await new Promise((resolve) => setTimeout(resolve, 20))
   })
 })

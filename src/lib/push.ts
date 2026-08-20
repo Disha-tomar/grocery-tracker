@@ -31,10 +31,56 @@ export function describeDevice(userAgent: string): string {
   return 'Chrome on desktop'
 }
 
+/**
+ * Races a promise against a timer, rejecting with a plain `Error` if `ms`
+ * elapses first. The timer is cleared on either branch so it can never keep
+ * a process — or a test — alive past settlement.
+ */
+export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Timed out after ${ms}ms`)), ms)
+    promise.then(
+      (value) => {
+        clearTimeout(timer)
+        resolve(value)
+      },
+      (err) => {
+        clearTimeout(timer)
+        reject(err)
+      },
+    )
+  })
+}
+
+/**
+ * `navigator.serviceWorker.ready` never settles when no service worker is or
+ * ever becomes registered (no `.catch()` can help there — an unsettled
+ * promise is not a rejection). That's the normal case in `npm run dev`, and
+ * it also happens in Firefox private browsing, storage-blocked contexts, or
+ * after a worker is unregistered by hand. Every push.ts function that needs
+ * the registration (getPushState, enablePush, disablePush) shares this one
+ * bounded wait instead of three separate copies of the same race; each
+ * caller decides what a timeout means for it.
+ */
+function serviceWorkerReadyWithin(ms: number): Promise<ServiceWorkerRegistration> {
+  return withTimeout(navigator.serviceWorker.ready, ms)
+}
+
 export async function getPushState(): Promise<PushState> {
   if (!isPushSupported()) return 'unsupported'
   if (Notification.permission === 'denied') return 'denied'
-  const registration = await navigator.serviceWorker.ready
+  let registration: ServiceWorkerRegistration
+  try {
+    registration = await serviceWorkerReadyWithin(3000)
+  } catch (err) {
+    // No registration within the timeout means we cannot ask it whether a
+    // subscription exists, so we genuinely don't know the state. 'disabled'
+    // is the only honest answer that's also safe: the toggle must never
+    // claim nudges are on when we couldn't check, or the family would believe
+    // they'd get notified when nobody's listening.
+    console.warn('Could not confirm push registration', err)
+    return 'disabled'
+  }
   const existing = await registration.pushManager.getSubscription()
   if (!existing) return 'disabled'
 
@@ -105,7 +151,11 @@ export async function enablePush(): Promise<'enabled' | 'denied' | 'unsupported'
   const permission = await Notification.requestPermission()
   if (permission !== 'granted') return 'denied'
 
-  const registration = await navigator.serviceWorker.ready
+  // A timeout here means enrolment genuinely did not happen — let it
+  // propagate as a rejection (same as any other setup failure) so the
+  // Settings toggle's existing catch reports it, rather than swallowing it
+  // into a false 'enabled'.
+  const registration = await serviceWorkerReadyWithin(3000)
   let subscription =
     (await registration.pushManager.getSubscription()) ?? (await subscribeFresh(registration))
 
@@ -142,35 +192,12 @@ export async function enablePush(): Promise<'enabled' | 'denied' | 'unsupported'
   return 'enabled'
 }
 
-/**
- * `navigator.serviceWorker.ready` never settles when no service worker is or
- * ever becomes registered (no `.catch()` can help there — an unsettled
- * promise is not a rejection). That's the normal case in `npm run dev`, and
- * it also happens in Firefox private browsing, storage-blocked contexts, or
- * after a worker is unregistered by hand. Bounding the wait here — rather
- * than at each call site — means every caller of `disablePush` (sign-out on
- * two screens, and the Settings toggle) is protected by one fix, and the
- * timer is always cleared so it can't keep a process or a test alive.
- */
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`Timed out after ${ms}ms`)), ms)
-    promise.then(
-      (value) => {
-        clearTimeout(timer)
-        resolve(value)
-      },
-      (err) => {
-        clearTimeout(timer)
-        reject(err)
-      },
-    )
-  })
-}
-
 export async function disablePush(): Promise<void> {
   if (!isPushSupported()) return
-  const registration = await withTimeout(navigator.serviceWorker.ready, 3000)
+  // Unchanged from the sign-out fix: a timeout here is swallowed by the
+  // caller (fire-and-forget-with-logging), since sign-out must always
+  // proceed regardless of whether push could be cleanly torn down.
+  const registration = await serviceWorkerReadyWithin(3000)
   const subscription = await registration.pushManager.getSubscription()
   if (!subscription) return
   await supabase.from('push_subscriptions').delete().eq('endpoint', subscription.endpoint)
