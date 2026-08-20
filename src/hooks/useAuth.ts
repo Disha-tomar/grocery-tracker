@@ -1,6 +1,7 @@
 import type { Session } from '@supabase/supabase-js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
+import { disablePush } from '../lib/push'
 import { supabase } from '../lib/supabase'
 import type { Household, Profile } from '../lib/types'
 
@@ -73,6 +74,11 @@ export function useHouseholdMembers(householdId: string | null | undefined) {
 export function useInvalidateOnSignOut() {
   const queryClient = useQueryClient()
   return async () => {
+    // A push subscription belongs to this browser, not this account, so it
+    // must be torn down before the session goes away — deleting the row
+    // needs the current user's RLS context. Sign-out must always succeed even
+    // if this fails (offline, transient error), so any failure is swallowed.
+    await disablePush().catch((err) => console.warn('Could not disable push on sign-out', err))
     await supabase.auth.signOut()
     queryClient.clear()
   }

@@ -34,6 +34,14 @@ export function SettingsScreen({
       } else {
         setPushState(await enablePush())
       }
+    } catch (err) {
+      console.warn('Could not update nudges', err)
+      // The browser subscription and the database row may now disagree, so
+      // don't just claim success or freeze on the old state — ask
+      // getPushState what's actually true, and tell the user something went
+      // sideways.
+      setPushState(await getPushState())
+      alert('Hmm, that didn’t work. Please try again? 🙈')
     } finally {
       setPushBusy(false)
     }
