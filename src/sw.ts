@@ -36,7 +36,9 @@ self.addEventListener('push', (event) => {
         body: payload.body,
         tag: payload.tag,
         icon: '/pwa-192x192.png',
-        badge: '/pwa-64x64.png',
+        // Android draws the badge from the alpha channel alone and paints every
+        // opaque pixel white — a full-colour icon becomes a solid white block.
+        badge: '/badge-96x96.png',
         data: { url: payload.url },
       })
       .catch((err) => console.warn('Could not show notification', err)),
