@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Mascot } from '../components/Mascot'
 import { NewItemSheet } from '../components/NewItemSheet'
 import { QuickAddSheet } from '../components/QuickAddSheet'
@@ -64,23 +65,30 @@ export function LowScreen({
         <div className="flex flex-col gap-2.5">
           {listItems.map((item) => (
             <div key={item.id} className="flex items-center gap-3 rounded-blob bg-white p-3.5 shadow-puff">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-berry-soft text-2xl">
-                {item.emoji}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-bold">{item.name}</p>
-                <p className={`text-sm font-extrabold ${isOut(item) ? 'text-berry' : 'text-ink-soft'}`}>
-                  {isOut(item)
-                    ? 'All gone! 😱'
-                    : isLow(item)
-                      ? `${formatQty(item.current_qty, item.unit)} left`
-                      : 'Someone asked for this 🙋'}
-                </p>
-              </div>
-              {item.needed && (
+              {/* Tapping through to the item is how you fix a wrong quantity or
+                  delete something added by mistake — the buttons stay outside
+                  the link so they keep their own taps. */}
+              <Link to={`/item/${item.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-berry-soft text-2xl">
+                  {item.emoji}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-bold">{item.name}</p>
+                  <p className={`text-sm font-extrabold ${isOut(item) ? 'text-berry' : 'text-ink-soft'}`}>
+                    {isOut(item)
+                      ? 'All gone! 😱'
+                      : isLow(item)
+                        ? `${formatQty(item.current_qty, item.unit)} left`
+                        : 'Someone asked for this 🙋'}
+                  </p>
+                </div>
+              </Link>
+              {/* Only offer this when withdrawing the request actually removes the
+                  card. On a genuinely low item it would do nothing visible. */}
+              {item.needed && !isLow(item) && (
                 <button
                   type="button"
-                  aria-label={`Remove ${item.name} from the list`}
+                  aria-label={`Remove ${item.name} from the shopping list`}
                   onClick={() => setNeeded.mutate({ itemId: item.id, needed: false })}
                   className="shrink-0 rounded-full px-2 py-1 text-lg font-bold text-ink-soft transition-transform active:scale-90"
                 >
