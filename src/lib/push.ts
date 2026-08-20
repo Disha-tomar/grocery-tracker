@@ -87,7 +87,11 @@ export async function disablePush(): Promise<void> {
  * already saved, so a failed notification must never look like a failed save.
  */
 export function notifyHouseholdOfNeed(itemId: string): void {
-  void supabase.functions
-    .invoke('notify-need', { body: { itemId } })
-    .catch((err) => console.warn('Could not notify the household', err))
+  try {
+    void supabase.functions
+      .invoke('notify-need', { body: { itemId } })
+      .catch((err) => console.warn('Could not notify the household', err))
+  } catch (err) {
+    console.warn('Could not notify the household', err)
+  }
 }

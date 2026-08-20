@@ -31,13 +31,15 @@ self.addEventListener('push', (event) => {
     return
   }
   event.waitUntil(
-    self.registration.showNotification(payload.title, {
-      body: payload.body,
-      tag: payload.tag,
-      icon: '/pwa-192x192.png',
-      badge: '/pwa-64x64.png',
-      data: { url: payload.url },
-    }),
+    self.registration
+      .showNotification(payload.title, {
+        body: payload.body,
+        tag: payload.tag,
+        icon: '/pwa-192x192.png',
+        badge: '/pwa-64x64.png',
+        data: { url: payload.url },
+      })
+      .catch((err) => console.warn('Could not show notification', err)),
   )
 })
 
