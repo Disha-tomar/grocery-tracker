@@ -4,6 +4,7 @@ import { NewItemSheet } from '../components/NewItemSheet'
 import { QuickAddSheet } from '../components/QuickAddSheet'
 import { Sheet } from '../components/Sheet'
 import { useItemMutations } from '../hooks/useData'
+import { notifyHouseholdOfNeed } from '../lib/push'
 import { formatQty, isLow, isOut, onShoppingList } from '../lib/stock'
 import type { Item, Purchase } from '../lib/types'
 
@@ -104,7 +105,10 @@ export function LowScreen({
         householdId={householdId}
         onClose={() => setAsking(false)}
         onFlag={(item) => {
-          setNeeded.mutate({ itemId: item.id, needed: true })
+          setNeeded.mutate(
+            { itemId: item.id, needed: true },
+            { onSuccess: () => notifyHouseholdOfNeed(item.id) },
+          )
           setAsking(false)
         }}
       />
@@ -210,7 +214,8 @@ function NeedSomethingSheet({
         needed
         submitLabel="Add to the list 🙋"
         onClose={() => setCreating(false)}
-        onCreated={() => {
+        onCreated={(item) => {
+          notifyHouseholdOfNeed(item.id)
           setCreating(false)
           setSearch('')
           onClose()

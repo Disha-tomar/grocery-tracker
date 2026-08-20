@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { disablePush, enablePush, getPushState, type PushState } from '../lib/push'
 import { useHouseholdMembers, useInvalidateOnSignOut } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import type { Household, Profile } from '../lib/types'
@@ -17,6 +18,34 @@ export function SettingsScreen({
 }) {
   const { data: members } = useHouseholdMembers(household.id)
   const signOut = useInvalidateOnSignOut()
+  const [pushState, setPushState] = useState<PushState>('unsupported')
+  const [pushBusy, setPushBusy] = useState(false)
+
+  useEffect(() => {
+    void getPushState().then(setPushState)
+  }, [])
+
+  const togglePush = async () => {
+    setPushBusy(true)
+    try {
+      if (pushState === 'enabled') {
+        await disablePush()
+        setPushState('disabled')
+      } else {
+        setPushState(await enablePush())
+      }
+    } catch (err) {
+      console.warn('Could not update nudges', err)
+      // The browser subscription and the database row may now disagree, so
+      // don't just claim success or freeze on the old state — ask
+      // getPushState what's actually true, and tell the user something went
+      // sideways.
+      setPushState(await getPushState())
+      alert('Hmm, that didn’t work. Please try again? 🙈')
+    } finally {
+      setPushBusy(false)
+    }
+  }
   const [name, setName] = useState(profile.display_name)
   const [saved, setSaved] = useState(false)
 
@@ -93,6 +122,42 @@ export function SettingsScreen({
           </p>
         </section>
       )}
+
+      <section className="mb-5 rounded-blob bg-white p-4 shadow-puff">
+        <h2 className="mb-1 font-display font-bold">Nudges 🙋</h2>
+        {pushState === 'unsupported' ? (
+          <p className="text-sm text-ink-soft">
+            {isIos && !isStandalone
+              ? 'Add Pantry Pal to your Home Screen first — iPhones only allow notifications for installed apps.'
+              : 'This browser can’t do notifications. Try Chrome on Android, or install the app.'}
+          </p>
+        ) : pushState === 'denied' ? (
+          <p className="text-sm text-ink-soft">
+            Notifications are blocked for Pantry Pal. Turn them back on in your browser’s site
+            settings, then reopen this page.
+          </p>
+        ) : (
+          <>
+            <p className="mb-3 text-sm text-ink-soft">
+              Get a nudge when someone in your home needs something.
+            </p>
+            <button
+              type="button"
+              onClick={togglePush}
+              disabled={pushBusy}
+              className={`w-full rounded-2xl py-3 font-display font-bold shadow-puff transition-transform active:scale-95 disabled:opacity-40 ${
+                pushState === 'enabled' ? 'bg-mint text-white' : 'bg-butter-soft'
+              }`}
+            >
+              {pushBusy
+                ? 'One sec…'
+                : pushState === 'enabled'
+                  ? 'Nudges are on ✓'
+                  : 'Turn on nudges 🔔'}
+            </button>
+          </>
+        )}
+      </section>
 
       <button type="button" onClick={signOut} className="w-full py-2 text-sm font-bold text-berry">
         Sign out
